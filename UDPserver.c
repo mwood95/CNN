@@ -6,8 +6,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
-// Take these as command lien arguments because port and IP will change 
 void main(int argc, char **argv)
 {
 	if(argc != 2)
@@ -16,28 +14,22 @@ void main(int argc, char **argv)
 		exit(0);
 	}
 
-	// Create arguments for UDP server
 	int port = atoi(argv[1]);
 	int sockfd;
-	struct sockaddr_in serverAddr, clientAddr;
+	struct sockaddr_in Computer, FPGA;
 	char buffer[1024];
 	socklen_t addr_size;
 
-	// Create Socket	
-	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	// Configure settings in address structure (for server)	
-	memset(&serverAddr, '\0', sizeof(serverAddr));
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(port);
-	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-	// Bind socket with address struct
-	bind(sockfd, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-	addr_size=sizeof(clientAddr);	
-	recvfrom(sockfd, buffer, 1024, 0, (struct sockaddr*)&clientAddr, &addr_size);
-	printf("[+] Data Recieved: %s\n", buffer);
+	sockfd=socket(AF_INET, SOCK_DGRAM, 0);
+	// Fill Structure with 0s
+	memset(&Computer, '\0', sizeof(Computer));
 	
-	
+	Computer.sin_family=AF_INET;
+	Computer.sin_port=htons(port);
+	Computer.sin_addr.s_addr=inet_addr("127.0.0.1");
 
+	bind(sockfd, (struct sockaddr*)&Computer, sizeof(Computer));
+	addr_size = sizeof(FPGA);
+	recvfrom(sockfd, buffer, 1024, 0, (struct sockaddr *)&FPGA, &addr_size);
+	printf("[+] Data Recieved %s\n", buffer);
 }

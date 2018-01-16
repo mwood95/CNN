@@ -1,40 +1,64 @@
-#include <stdio.h>
+/********************************************************************************************
+* Name: 	Michael Wood
+* Date: 	1/15/17
+* File: 	UDPclient.c
+* Description:	This file wil contain the program that will run the UDP client code
+* 		that will be sending matrix data to the FPGA.
+*
+********************************************************************************************/
+
+#include <stdio.h>		// printf()
+#include <string.h>		// memset
+#include <stdlib.h>		// exit(0)
+#include <arpa/inet.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
 
+#define DESTINATION 	"192.168.1.10"		// FPGA IP Address
+#define SOURCE		"169.254.130.144"	// Raspberru Pi IP Address
+#define BUF_LEN		512			// Maximum Buffer Length
+#define PORT		4455			// Target Port  
 
-int main()
+void die(char *s)
 {
-	int clientSocket, portNum, nBytes;
+	perror(s);
+	exit(1);
+}
+
+int main(char argc, char **argv)
+{
+	
+	if(argc != 2)
+	{
+		printf("Usage: %s <port> \n", argv[0]);
+	}
+
+	printf("\n\nSource IP: %s\nDestination IP: %s\nPort: %d\n\n", SOURCE, DESTINATION, PORT);
+
+	int sockfd;
+	struct sockaddr_in Computer;
+	struct sockaddr_in FPGA;
 	char buffer[1024];
-	struct sockaddr_in serverAddr;
 	socklen_t addr_size;
 
-	// Create UDP socket
-	clientSocket = socket(AF_INET, SOCK_DGRAM, 0);
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	memset(&Computer, '\0', sizeof(Computer));
+	memset(&FPGA, '\0', sizeof(FPGA));
+	
+	Computer.sin_family=AF_INET;
+	Computer.sin_port=htons(PORT);
+	Computer.sin_addr.s_addr=inet_addr(SOURCE);
+	
+	FPGA.sin_family=AF_INET;
+	FPGA.sin_port=htons(PORT);
+	FPGA.sin_addr.s_addr=inet_addr(DESTINATION);
 
-	// Configure setting in address structure
-	memset(&serverAddr, '\0', sizeof(serverAddr));
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(7891);
-	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	// Initialize size variable to be used later
-	addr_size = sizeof serverAddr;
 
-	while(1)
-	{
-		printf("Type a something to send to server\n");
-		fgets(buffer, 1024, stdin);
-		
-		nBytes = strlen(buffer) + 1;
 
-		// Send the message to the server
-		sendto(clientSocket, buffer, nBytes, 0, (struct sockaddr *)&serverAddr, addr_size);
-
-		// Recieve message from server
-		nBytes = recvfrom(clientSocket, buffer, 1024, 0, NULL,NULL);
-	}
+	strcpy(buffer, "Hello Server");
+	sendto(sockfd, buffer, 1024, 0, (struct sockaddr*)&FPGA, sizeof(FPGA));
+	printf("[+] Data Send: %s\n", buffer);
 	return 0;
+
+
 }
