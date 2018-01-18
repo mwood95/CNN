@@ -24,39 +24,39 @@ void die(char *s)
 	exit(1);
 }
 
-int main(char argc, char **argv)
+int main()
 {
 	
-	if(argc != 2)
-	{
-		printf("Usage: %s <port> \n", argv[0]);
-	}
-
 	printf("\n\nSource IP: %s\nDestination IP: %s\nPort: %d\n\n", SOURCE, DESTINATION, PORT);
 
 	int sockfd;
-	struct sockaddr_in Computer;
-	struct sockaddr_in FPGA;
+	struct sockaddr_in LocalAddr;
+	struct sockaddr_in RemoteAddr;
 	char buffer[1024];
 	socklen_t addr_size;
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-	memset(&Computer, '\0', sizeof(Computer));
-	memset(&FPGA, '\0', sizeof(FPGA));
-	
-	Computer.sin_family=AF_INET;
-	Computer.sin_port=htons(PORT);
-	Computer.sin_addr.s_addr=inet_addr(SOURCE);
-	
-	FPGA.sin_family=AF_INET;
-	FPGA.sin_port=htons(PORT);
-	FPGA.sin_addr.s_addr=inet_addr(DESTINATION);
+	memset(&LocalAddr, '\0', sizeof(LocalAddr));
+	memset(&RemoteAddr, '\0', sizeof(RemoteAddr));
+
+
+	// Bind to a specific Local IP
+	LocalAddr.sin_family=AF_INET;
+	LocalAddr.sin_port=htons(PORT);
+	LocalAddr.sin_addr.s_addr=inet_addr(SOURCE);
+	bind(sockfd, (struct sockaddr *)&LocalAddr, sizeof(LocalAddr));
+
+	// Connect to a specific Remote IP
+	RemoteAddr.sin_family=AF_INET;
+	RemoteAddr.sin_port=htons(PORT);
+	RemoteAddr.sin_addr.s_addr=inet_addr(DESTINATION);
+	connect(sockfd, (struct sockaddr *)&RemoteAddr, sizeof(RemoteAddr));
 
 
 
 
 	strcpy(buffer, "Hello Server");
-	sendto(sockfd, buffer, 1024, 0, (struct sockaddr*)&FPGA, sizeof(FPGA));
+	sendto(sockfd, buffer, 1024, 0, (struct sockaddr*)&RemoteAddr, sizeof(RemoteAddr));
 	printf("[+] Data Send: %s\n", buffer);
 	return 0;
 

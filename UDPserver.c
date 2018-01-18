@@ -5,16 +5,13 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-void main(int argc, char **argv)
+#define COMPUTER_IP "169.254.179.192"
+#define WIFI_IP		"127.0.0.1"
+#define PORT 4455
+void main()
 {
-	if(argc != 2)
-	{
-		printf("Usage: %s <port>\n", argv[0]);
-		exit(0);
-	}
 
-	int port = atoi(argv[1]);
+	int port = PORT;
 	int sockfd;
 	struct sockaddr_in Computer, FPGA;
 	char buffer[1024];
@@ -26,8 +23,12 @@ void main(int argc, char **argv)
 	
 	Computer.sin_family=AF_INET;
 	Computer.sin_port=htons(port);
-	Computer.sin_addr.s_addr=inet_addr("127.0.0.1");
-
+	Computer.sin_addr.s_addr=inet_addr(COMPUTER_IP);
+/*
+	FPGA.sin_family=AF_INET;
+	FPGA.sin_port=htons(port);
+	FPGA.sin_addr.s_addr=inet_addr(INADDR_ANY);
+*/
 	bind(sockfd, (struct sockaddr*)&Computer, sizeof(Computer));
 	addr_size = sizeof(FPGA);
 	recvfrom(sockfd, buffer, 1024, 0, (struct sockaddr *)&FPGA, &addr_size);
