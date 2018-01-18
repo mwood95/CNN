@@ -14,9 +14,9 @@
 #include <sys/socket.h>
 
 #define DESTINATION 	"192.168.1.10"		// FPGA IP Address
-#define SOURCE		"169.254.130.144"	// Raspberru Pi IP Address
+#define SOURCE		"192.168.1.15"	// Raspberru Pi IP Address
 #define BUF_LEN		512			// Maximum Buffer Length
-#define PORT		4455			// Target Port  
+#define PORT		1900			// Target Port  
 
 void die(char *s)
 {
