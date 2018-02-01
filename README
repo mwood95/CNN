@@ -6,3 +6,14 @@
 
 Change Log:
 
+	1/15/18: 	Wrote and tested a UDP client program that can send data
+			to the FPGA. I am still having some issues with recieving
+			data back from the FPGA. This issue will need to be 
+			resolved after the network has been modeled in C.
+
+	1/31/18:	Created a generic convolution function block that can 
+			take in an arbitrary size image and filter and produce
+			a convolved output. This has only been tested in the 
+			context of a bash shell, still needs to be tested on 
+			the FPGA.
+
