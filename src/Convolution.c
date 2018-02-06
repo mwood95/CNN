@@ -99,8 +99,6 @@ int main(void)
 	
 	printf("\n\nPool Out Matrix:\n\n");
 	frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
-
-	printf("Local to main:\n\n");
 	print_matrix(out_pool_ptr, len_out_pool, len_out_pool); 
 
 	return 0;
@@ -113,8 +111,6 @@ void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
 	int i = 0;
 	int row = 0;
 	int col = 0;
-	col = 2;
-	printf("Col: %d", col);
 
 	float *img_frame_ptr[len_frm];
 	for(i = 0; i < len_frm; i++)
@@ -122,13 +118,10 @@ void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
 		img_frame_ptr[i] = (float *)malloc(len_frm*sizeof(float));
 	}
 
-	printf("%d\n", len_img);
-	for(row = 0; row < len_img + 2; row = row + 2)
+	for(row = 0; row < len_img; row = row + 2)
 	{
-		printf("\n\n");
-		for(col = 0; col < len_img + 2; col = col + 2)
+		for(col = 0; col < len_img; col = col + 2)
 		{
-			printf("Row: %d\nCol: %d", row, col);
 			for(r = 0; r < len_frm; r++)
 			{
 				for(c = 0; c < len_frm; c++)
@@ -136,12 +129,10 @@ void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
 					(img_frame_ptr)[r][c] = image[r+row][c+col];
 				}
 			}
-
-			(out)[row][col] = Pool(img_frame_ptr, len_frm, len_frm);
-			printf("%f	", out[row][col]);
+			(out)[(row/2)][(col/2)] = Pool(img_frame_ptr, len_frm, len_frm);
 		}
-		printf("\n\n");
 	}	
+
 }
 
 
