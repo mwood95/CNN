@@ -16,21 +16,27 @@
 #include <stdio.h>
 #include <string.h>
 
+#define DEBUG
+
 /* Function Declarations */
 void image_init(float **image, int row, int col);
 void filter_init(float **filter, int row, int col);
 void frame_shfit(float **image, float **filter, float **out, int len_img, int len_fil, int len_out);
+void frame_shift_pool(float **image, float **out, int len_img, int len_frm);
 void print_matrix(float **matrix, int row, int col);
 float Conv(float **image, float **filter, int row, int col);
+float Pool(float **image, int row, int col);
 
 
 /* Global Variables */
 
 int main(void)
 {
+	int r, c;
 	int len_img;
 	int len_fil;
 	int len_out;
+	int len_out_pool;
 	int i = 0;
 
 
@@ -42,12 +48,15 @@ int main(void)
 	printf("%d x %d\n", len_fil, len_fil);
 	len_out = len_img - len_fil + 1;
 	printf("Output %d x %d\n", len_out, len_out);
+	len_out_pool = len_out/2;
+	printf("Pool Output %d x %d\n" , len_out_pool, len_out_pool);
 
 	// Array of pointers of a given size
 	// The later implementation of this will take these lengths as an input
 	float *img_ptr[len_img];
 	float *fil_ptr[len_fil];
 	float *out_ptr[len_out];
+	float *out_pool_ptr[len_out_pool];
 
 	// Dynamically allocate 2D arrays for image, filter, and output matrix
 	for(i = 0; i < len_img; i++)
@@ -62,7 +71,11 @@ int main(void)
 	{
 		out_ptr[i] = (float *)malloc(len_out*sizeof(float));
 	}
-	
+	for(i = 0; i < len_out_pool; i++)
+	{
+		out_pool_ptr[i] = (float *)malloc(len_out_pool*sizeof(float));
+	}
+
 
 	// Initialize Image and Filter Matricies
 	// Done for the purpose of testing
@@ -83,9 +96,52 @@ int main(void)
 	printf("\n\nOutput Matrix 1:\n\n");
 	printf("%d x %d\n", len_out, len_out);
 	print_matrix(out_ptr, len_out, len_out);
+	
+	printf("\n\nPool Out Matrix:\n\n");
+	frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
 
+	printf("Local to main:\n\n");
+	print_matrix(out_pool_ptr, len_out_pool, len_out_pool); 
 
 	return 0;
+}
+
+void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
+{
+	int r = 0;
+	int c = 0;
+	int i = 0;
+	int row = 0;
+	int col = 0;
+	col = 2;
+	printf("Col: %d", col);
+
+	float *img_frame_ptr[len_frm];
+	for(i = 0; i < len_frm; i++)
+	{
+		img_frame_ptr[i] = (float *)malloc(len_frm*sizeof(float));
+	}
+
+	printf("%d\n", len_img);
+	for(row = 0; row < len_img + 2; row = row + 2)
+	{
+		printf("\n\n");
+		for(col = 0; col < len_img + 2; col = col + 2)
+		{
+			printf("Row: %d\nCol: %d", row, col);
+			for(r = 0; r < len_frm; r++)
+			{
+				for(c = 0; c < len_frm; c++)
+				{
+					(img_frame_ptr)[r][c] = image[r+row][c+col];
+				}
+			}
+
+			(out)[row][col] = Pool(img_frame_ptr, len_frm, len_frm);
+			printf("%f	", out[row][col]);
+		}
+		printf("\n\n");
+	}	
 }
 
 
@@ -115,8 +171,9 @@ void frame_shift(float **image, float **filter, float **out, int len_img, int le
 	int row = 0;
 	int col = 0;	
 
+	printf("len_img %d", len_img);
 
-	volatile float *img_frame_ptr[len_fil];
+	float *img_frame_ptr[len_fil];
 	for(i = 0; i < len_fil; i++)
 	{
 		img_frame_ptr[i] = (float *)malloc(len_fil*sizeof(float));
@@ -177,6 +234,31 @@ float Conv(float **image, float **filter, int row, int col)
 	return out = hist/(row*col);
 }
 
+float Pool(float **image, int row, int col)
+{
+	int r = 0;
+	int c = 0;
+	float out = 0;
+
+	for(r = 0; r < row; r++)
+	{
+		for(c = 0; c < col; c++)
+		{	
+			if(out < image[r][c])
+			{
+				out = image[r][c];
+			}
+			else
+			{
+				out = out;
+			}
+		}
+	}
+
+	return out;
+
+}
+
 void image_init(float **image, int row, int col)
 {
 	int r = 0;
@@ -233,4 +315,4 @@ void filter_init(float **filter, int row, int col)
 	}
 }
 
-
+													
