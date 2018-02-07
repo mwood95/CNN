@@ -15,6 +15,10 @@
 /* Includes */
 #include <stdio.h>
 #include <string.h>
+#include "FullyConnected.h"
+#include "Backprop.h"
+#include "RLU.h"
+
 
 #define DEBUG
 
@@ -96,10 +100,19 @@ int main(void)
 	printf("\n\nOutput Matrix 1:\n\n");
 	printf("%d x %d\n", len_out, len_out);
 	print_matrix(out_ptr, len_out, len_out);
+
+	RLU(out_ptr, len_out, len_out);
 	
 	printf("\n\nPool Out Matrix:\n\n");
 	frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
 	print_matrix(out_pool_ptr, len_out_pool, len_out_pool); 
+
+	float result = FullyConnected(out_pool_ptr, len_out_pool, len_out_pool);
+	printf("Result: %f\n", result);
+
+	backProp(fil_ptr, len_fil, len_fil, 1.0, result, 1);
+	printf("Filter Matrix after Backpropagation...\n");
+	print_matrix(fil_ptr, len_fil, len_fil);
 
 	return 0;
 }
