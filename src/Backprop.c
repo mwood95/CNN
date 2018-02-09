@@ -2,12 +2,18 @@
 #include <string.h>
 #include "Backprop.h"
 
+/*************************** Function Prototypes *********************************/
 float MSE(float target, float actual);
 void backProp(float **filter, int row, int col, float target, float actual, int LR);
+/*********************************************************************************/
 
 float MSE(float target, float actual)
 {
-	return .5*(target - actual)*(target - actual);
+	 float result = 0;
+	 printf("Target: %f, Actual: %f\n", target, actual);
+	 result =.5*(target - actual)*(target - actual);
+	 printf("Error %f\n", result);
+	 return result;
 }
 
 void backProp(float **filter, int row, int col, float target, float actual, int LR)
@@ -19,7 +25,7 @@ void backProp(float **filter, int row, int col, float target, float actual, int 
 	{
 		for(c = 0; c < col; c++)
 		{
-			filter[r][c] = filter[r][c] - LR*error;
+			filter[r][c] = -filter[r][c] + LR*error;
 		}
 	}	
 }

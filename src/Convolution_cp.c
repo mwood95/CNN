@@ -42,8 +42,6 @@ int main(void)
 	int len_out;
 	int len_out_pool;
 	int i = 0;
-	float result = .55555;
-	float acc;
 
 
 	printf("What size image would you like to start with?\n");
@@ -51,8 +49,6 @@ int main(void)
 	printf("%d x %d\n", len_img, len_img);
 	printf("What size filter would you like to use?\n");
 	scanf("%d", &len_fil);
-	printf("What accuracy are you looking for\n");
-	scanf("%f", &acc);
 	printf("%d x %d\n", len_fil, len_fil);
 	len_out = len_img - len_fil + 1;
 	printf("Output %d x %d\n", len_out, len_out);
@@ -87,9 +83,9 @@ int main(void)
 
 	// Initialize Image and Filter Matricies
 	// Done for the purpose of testing
-	// Print Matrix to screen
 	image_init(img_ptr, len_img, len_img);
 	filter_init(fil_ptr, len_fil, len_img);
+
 	printf("\n\nImage Matrix\n\n");
 	printf("%d x %d\n", len_img, len_img);
 	print_matrix(img_ptr, len_img, len_img);
@@ -98,24 +94,25 @@ int main(void)
 	printf("\n\nFilter Matrix\n\n");
 	printf("%d x %d\n", len_fil, len_fil);
 	print_matrix(fil_ptr, len_fil, len_fil);	
-	int iteration = 0;
 
-	while((result) < acc)
-	{
-		iteration++;
-		printf("\n\nIteration: %d\n", iteration);
+	frame_shift(img_ptr, fil_ptr, out_ptr, len_img, len_fil, len_out);
 
-		// Run Neural Network
-		frame_shift(img_ptr, fil_ptr, out_ptr, len_img, len_fil, len_out);
-		RLU(out_ptr, len_out, len_out);
-		frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
-		result = FullyConnected(out_pool_ptr, len_out_pool, len_out_pool);
-		backProp(fil_ptr, len_fil, len_fil, 1.0, result, 1);
+	printf("\n\nOutput Matrix 1:\n\n");
+	printf("%d x %d\n", len_out, len_out);
+	print_matrix(out_ptr, len_out, len_out);
 
-		printf("After Process Result: %f\n", result);
+	RLU(out_ptr, len_out, len_out);
+	
+	printf("\n\nPool Out Matrix:\n\n");
+	frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
+	print_matrix(out_pool_ptr, len_out_pool, len_out_pool); 
 
-	}
+	float result = FullyConnected(out_pool_ptr, len_out_pool, len_out_pool);
+	printf("Result: %f\n", result);
 
+	backProp(fil_ptr, len_fil, len_fil, 1.0, result, 1);
+	printf("Filter Matrix after Backpropagation...\n");
+	print_matrix(fil_ptr, len_fil, len_fil);
 
 	return 0;
 }
@@ -178,6 +175,7 @@ void frame_shift(float **image, float **filter, float **out, int len_img, int le
 	int row = 0;
 	int col = 0;	
 
+	printf("len_img %d", len_img);
 
 	float *img_frame_ptr[len_fil];
 	for(i = 0; i < len_fil; i++)
@@ -311,14 +309,14 @@ void filter_init(float **filter, int row, int col)
 		{
 			if(r == c)
 			{
-				(filter)[r][c] = 0;
+				(filter)[r][c] = 1;
 			}
 			else
 			{
-				(filter)[r][c] = 1;
+				(filter)[r][c] = 0;
 			}
 		}
 	}
 }
 
-
+													
