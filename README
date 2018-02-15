@@ -17,3 +17,13 @@ Change Log:
 			context of a bash shell, still needs to be tested on 
 			the FPGA.
 
+	2/14/18:	Convolution, RLU, Pool, Fully Connected, and 
+			Backpropagation blocks have been developed. The 
+			backpropagation block is fairly simple and we are 
+			only dealing with a single filter. On every even
+			iteration through we get negative values for 
+			current test matrix because the filter values go 
+			negative and are rectified to zero in the RLU.	
+			Need to do more complete testing to see if this
+			is a bigger issue or not.
+

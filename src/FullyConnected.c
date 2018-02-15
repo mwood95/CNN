@@ -4,9 +4,10 @@
 
 
 float FullyConnected(float **input, int row, int col);
+
 float FullyConnected(float **input, int row, int col)
 {
-	float result;
+	float result = 0;
 	int r, c;
 
 	for(r = 0; r < row; r++)
