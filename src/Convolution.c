@@ -36,6 +36,7 @@ float Pool(float **image, int row, int col);
 
 int main(void)
 {
+	FILE * fd;
 	int r, c;
 	int len_img;
 	int len_fil;
@@ -44,6 +45,9 @@ int main(void)
 	int i = 0;
 	float result = .55555;
 	float acc;
+	int max;
+
+	fd = fopen("Data.txt", "w");
 
 
 	printf("What size image would you like to start with?\n");
@@ -53,10 +57,19 @@ int main(void)
 	scanf("%d", &len_fil);
 	printf("What accuracy are you looking for\n");
 	scanf("%f", &acc);
+	printf("What is the maximum amount of iterations allowable?\n");
+	scanf("%d", &max);
 	printf("%d x %d\n", len_fil, len_fil);
 	len_out = len_img - len_fil + 1;
 	printf("Output %d x %d\n", len_out, len_out);
-	len_out_pool = len_out/2;
+	if(len_out % 2 == 0)
+	{
+		len_out_pool = len_out/2;
+	}
+	else
+	{
+		len_out_pool = len_out/2 + 1;
+	}
 	printf("Pool Output %d x %d\n" , len_out_pool, len_out_pool);
 
 	// Array of pointers of a given size
@@ -85,41 +98,57 @@ int main(void)
 	}
 
 
-	// Initialize Image and Filter Matricies
-	// Done for the purpose of testing
-	// Print Matrix to screen
+	// Initialize Image and Filter Matricies (For Testing Purpose Only)
 	image_init(img_ptr, len_img, len_img);
 	filter_init(fil_ptr, len_fil, len_img);
-	printf("\n\nImage Matrix\n\n");
-	printf("%d x %d\n", len_img, len_img);
-	print_matrix(img_ptr, len_img, len_img);
-
-
-	printf("\n\nFilter Matrix\n\n");
-	printf("%d x %d\n", len_fil, len_fil);
-	print_matrix(fil_ptr, len_fil, len_fil);	
 	int iteration = 0;
 
 	while((result) < acc)
 	{
 		iteration++;
-		printf("\n\nIteration: %d\n", iteration);
 
 		// Run Neural Network
 		frame_shift(img_ptr, fil_ptr, out_ptr, len_img, len_fil, len_out);
 		RLU(out_ptr, len_out, len_out);
 		frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
 		result = FullyConnected(out_pool_ptr, len_out_pool, len_out_pool);
-		backProp(fil_ptr, len_fil, len_fil, 1.0, result, 1);
+		backProp(fil_ptr, len_fil, len_fil, 1.0, result, 2);
+		fprintf(fd,"%f \n", result);
+		
+		if(iteration == 1000)
+		{
+			printf("\n\nNetwork could not converge on a result.\nProbability after termination: %f\n", result);
+//			print_matrix(fil_ptr, len_fil, len_fil);
+			break;
+		}
+		if(result > acc)
+		{
+			printf("\n\nNetwork converged on a result.\nProbability after termination: %f\n", result);
+			printf("It took %d iterations\n", iteration);
+//			print_matrix(fil_ptr, len_fil, len_fil);
+		}
 
-		printf("After Process Result: %f\n", result);
 
 	}
 
-
+	fclose(fd);
 	return 0;
 }
 
+/*******************************************************************************************************************************
+ * Function: 	frame_shift_pool
+ *
+ * Inputs:	image:		A frame of the entire image that needs to be processed.
+ * 		out:		Result from convolution (Multiply and Accumulate)	
+ * 		len_img:	Size of the Image Matrix (NxN)
+ * 		len_frm:	Size of pooling frame to sweep across image (Generally will be 2x2)
+ *
+ * Description:	This function provides the functionality of "sweeping" a context frame across the input image. 
+ * 		The frame should sweep across an arbitrary sized image and pass the data into the pooling  
+ * 		computation function. The results will populate an output matrix to give back to the main function.
+ * 		
+ *
+ * *****************************************************************************************************************************/
 void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
 {
 	int r = 0;
@@ -134,15 +163,43 @@ void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
 		img_frame_ptr[i] = (float *)malloc(len_frm*sizeof(float));
 	}
 
-	for(row = 0; row < len_img; row = row + 2)
+	/******************************************************************
+	 * This for loop is unique in that it needs to position the context
+	 * frame such that it does not overlap with previous values.
+	 * Example:
+	 *
+	 * [ ] [ ] x x x x . . .   ------>    x x [ ] [ ] x x . . .
+	 * [ ] [ ] x x x x . . .   ------>    x x [ ] [ ] x x . . .
+	 *  x   x  x x x x . . .   ------>    x x  x   x  x x . . .
+	 *  x   x  x x x x . . .   ------>    x x  x   x  x x . . .
+	 *
+	 * This is the reason for the "len_img + 1" and row and col 
+	 * incrementing by two after each iteration. Nested in the final 
+	 * two for loops is an if statement that handles the issue with 
+	 * accessing the image array elements that are out of bounds.
+	 *
+	 * For example if our image is 7x7 and our output matrix expects 
+	 * a 4x4 solution, the 2x2 pool frame will try to read an 8th 
+	 * element within the image matrix that doesn't exist. This 
+	 * issue only exists for image inputs that are odd.
+	 * ***************************************************************/
+	for(row = 0; row < len_img + 1; row = row + 2)
 	{
-		for(col = 0; col < len_img; col = col + 2)
+		for(col = 0; col < len_img + 1; col = col + 2)
 		{
 			for(r = 0; r < len_frm; r++)
 			{
 				for(c = 0; c < len_frm; c++)
 				{
-					(img_frame_ptr)[r][c] = image[r+row][c+col];
+					if( (r + row == 7) | (c + col == 7))
+					{	
+						(img_frame_ptr)[r][c] == 0;
+					}
+					else
+					{
+						(img_frame_ptr)[r][c] = image[r+row][c+col];
+					}
+					
 				}
 			}
 			(out)[(row/2)][(col/2)] = Pool(img_frame_ptr, len_frm, len_frm);
@@ -210,8 +267,6 @@ void frame_shift(float **image, float **filter, float **out, int len_img, int le
  * 		row:		The number of rows in the computation
  * 		col:		The number of columns in the computation
  *
- * Outputs: 	out:		Result from convolution (Multiply and Accumulate)
- *
  * Description:	This function serves as a model for what will be implemented in hardware later. It is a generic convolution
  * 		calculation that produces a single output. This function will work for any sized image and filter. This means 
  * 		that image frame positioning must be handled outside of this function. This is the basis for how the 
@@ -240,6 +295,21 @@ float Conv(float **image, float **filter, int row, int col)
 	return out = hist/(row*col);
 }
 
+
+/*******************************************************************************************************************************
+ * Function: 	Pool	
+ *
+ * Inputs:	image:		A frame of the entire image that needs to be processed.
+ * 		row:		The number of rows in the computation
+ * 		col:		The number of columns in the computation
+ *
+ * Description:	This function serves as a model for what will be implemented in hardware later. It is a generic pooling
+ * 		function that passes the greatest value in the context frame to the output. This function will work for 
+ * 		any sized image and filter. This means that image frame positioning must be handled outside of this function. 
+ * 		This is the basis for how the hardware implementation of this function will work. The CPU will be responsible
+ * 		for positioning the filter over image pixel values that are of interest. 			
+ *
+ * *****************************************************************************************************************************/
 float Pool(float **image, int row, int col)
 {
 	int r = 0;
@@ -280,7 +350,7 @@ void image_init(float **image, int row, int col)
 			}
 			else
 			{
-				(image)[r][c] = 0;
+				(image)[r][c] = -1;
 			}
 		}
 	}
@@ -311,11 +381,11 @@ void filter_init(float **filter, int row, int col)
 		{
 			if(r == c)
 			{
-				(filter)[r][c] = 0;
+				(filter)[r][c] = .3;
 			}
 			else
 			{
-				(filter)[r][c] = 1;
+				(filter)[r][c] = -.4;
 			}
 		}
 	}

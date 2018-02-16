@@ -18,7 +18,6 @@ float FullyConnected(float **input, int row, int col)
 		}
 	}
 	result = result/(row*col);
-	printf("Probability this is a diagonal: %f\n", result);
 	return result;
 }
 
