@@ -26,4 +26,12 @@ Change Log:
 			negative and are rectified to zero in the RLU.	
 			Need to do more complete testing to see if this
 			is a bigger issue or not.
+	
+	2/19/18:	Project still has issues with variable size image
+			and filter values. For now just set constraints on
+			these variables.
+			When tested on FPGA there is an issue with accessing
+			bad addresses. I haven't looked much into what the 
+			problem is exactly, but I will look into that before 
+			the next commit.
 
