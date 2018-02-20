@@ -62,14 +62,15 @@ int main(void)
 	printf("%d x %d\n", len_fil, len_fil);
 	len_out = len_img - len_fil + 1;
 	printf("Output %d x %d\n", len_out, len_out);
-	if(len_out % 2 == 0)
-	{
+//	if(len_out % 2 == 0)
+//	{
 		len_out_pool = len_out/2;
-	}
-	else
+//	}
+/*	else
 	{
 		len_out_pool = len_out/2 + 1;
 	}
+	*/
 	printf("Pool Output %d x %d\n" , len_out_pool, len_out_pool);
 
 	// Array of pointers of a given size
@@ -183,22 +184,22 @@ void frame_shift_pool(float **image, float **out, int len_img, int len_frm)
 	 * element within the image matrix that doesn't exist. This 
 	 * issue only exists for image inputs that are odd.
 	 * ***************************************************************/
-	for(row = 0; row < len_img + 1; row = row + 2)
+	for(row = 0; row < len_img; row = row + 2)
 	{
-		for(col = 0; col < len_img + 1; col = col + 2)
+		for(col = 0; col < len_img; col = col + 2)
 		{
 			for(r = 0; r < len_frm; r++)
 			{
 				for(c = 0; c < len_frm; c++)
 				{
-					if( (r + row == 7) | (c + col == 7))
+	/*				if( (r + row == 7) | (c + col == 7))
 					{	
 						(img_frame_ptr)[r][c] == 0;
-					}
-					else
-					{
+					}*/
+				//	else
+				//	{
 						(img_frame_ptr)[r][c] = image[r+row][c+col];
-					}
+				//	}
 					
 				}
 			}
