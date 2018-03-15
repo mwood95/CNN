@@ -4,28 +4,49 @@
 
 /*************************** Function Prototypes *********************************/
 float MSE(float target, float actual);
-void backProp(float **filter, int row, int col, float target, float actual, int LR);
+void backProp(float **filter, int row, int col, float **image, int ri, int ci, float target, float actual, int LR);
 /*********************************************************************************/
 
 float MSE(float target, float actual)
 {
 	 float result = 0;
-	// printf("Target: %f, Actual: %f\n", target, actual);
 	 result =.5*(target - actual)*(target - actual);
-	 //printf("Error %f\n", result);
 	 return result;
 }
 
-void backProp(float **filter, int row, int col, float target, float actual, int LR)
+void backProp(float **filter, int row, int col, float **image, int ri, int ci, float target, float actual, int LR)
 {
 	float error = MSE(target, actual);
+	float result; 
 	int r, c;
+	int a, b;
 
 	for(r = 0; r < row; r++)
 	{
 		for(c = 0; c < col; c++)
 		{
-			filter[r][c] = filter[r][c] - LR*error;
+			result = 0;
+
+			for(a = 0; a < ri; a++)
+			{
+				for(b = 0; b < ci; b++)
+				{
+					if(a + r < ci)
+					{
+						result = result + image[a + r][b + c];
+					}
+				}
+			}
+			result = result/(ri*ci);
+
+			if(target == 0)
+			{
+				filter[r][c] = filter[r][c] - LR*result;
+			}
+			else
+			{
+				filter[r][c] = filter[r][c] + LR*result;
+			}
 		}
 	}	
 }
