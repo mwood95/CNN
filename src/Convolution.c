@@ -62,15 +62,7 @@ int main(void)
 	printf("%d x %d\n", len_fil, len_fil);
 	len_out = len_img - len_fil + 1;
 	printf("Output %d x %d\n", len_out, len_out);
-//	if(len_out % 2 == 0)
-//	{
-		len_out_pool = len_out/2;
-//	}
-/*	else
-	{
-		len_out_pool = len_out/2 + 1;
-	}
-	*/
+	len_out_pool = len_out/2;
 	printf("Pool Output %d x %d\n" , len_out_pool, len_out_pool);
 
 	// Array of pointers of a given size
@@ -100,21 +92,28 @@ int main(void)
 
 
 	// Initialize Image and Filter Matricies (For Testing Purpose Only)
-	image_init(img_ptr, len_img, len_img);
+//	image_init(img_ptr, len_img, len_img);
 	filter_init(fil_ptr, len_fil, len_img);
 	int iteration = 0;
+	float expected;
 
 	while((result) < acc)
 	{
 		iteration++;
-
+		printf("Populate the image structure\n");
+		image_init(img_ptr, len_img, len_img);
+//		printf("What is the expected result?\n");
+//		scanf("%f", &expected);	
+		expected = 1;
 		// Run Neural Network
 		frame_shift(img_ptr, fil_ptr, out_ptr, len_img, len_fil, len_out);
 		RLU(out_ptr, len_out, len_out);
 		frame_shift_pool(out_ptr, out_pool_ptr, len_out, 2);
 		result = FullyConnected(out_pool_ptr, len_out_pool, len_out_pool);
-		backProp(fil_ptr, len_fil, len_fil, 1.0, result, 2);
+		printf("Backpropagation Calculation...\n");
+		backProp(fil_ptr, len_fil, len_fil, img_ptr, len_img, len_img, expected, result, 1);
 		fprintf(fd,"%f \n", result);
+		printf("Result: %f\n", result);
 		
 		if(iteration == 1000)
 		{
@@ -340,20 +339,26 @@ void image_init(float **image, int row, int col)
 {
 	int r = 0;
 	int c = 0;
+	float buff;
 
 	for(r = 0; r < row; r++)
 	{
 		for(c = 0; c < col; c++)
 		{
+
+			//scanf("%f", &buff);
 			if(r == c)
 			{
-				(image)[r][c] = 1;
+				(image)[r][c] = 1; //buff;
 			}
 			else
 			{
-				(image)[r][c] = -1;
+				(image)[r][c] = 0; //buff;
 			}
+//			printf("%f	", image[r][c]);
+			
 		}
+	//	printf("\n\n");
 	}
 } 
 
@@ -382,11 +387,11 @@ void filter_init(float **filter, int row, int col)
 		{
 			if(r == c)
 			{
-				(filter)[r][c] = .3;
+				(filter)[r][c] = 1;
 			}
 			else
 			{
-				(filter)[r][c] = -.4;
+				(filter)[r][c] = -1;
 			}
 		}
 	}
